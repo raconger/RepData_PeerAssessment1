@@ -1,25 +1,64 @@
 ---
-title: "Reproducible Research: Peer Assessment 1"
+title: "Reproducible Research: Peer Assessment 1 by raconger"
 output: 
   html_document:
     keep_md: true
 ---
 
-
 ## Loading and preprocessing the data
+To load that data, one must read the CSV file:
 
+```{r}
+setwd("~/GitHub/RepData_PeerAssessment1")
+data <- read.csv(file="activity.csv",head=TRUE,sep=",")
+summary(data)
+```
 
+It can be observed that there are many NAs in the imported dataset. This should be cleaned for further analysis. Also, since the data are taken in 5 minute intervals, we must sum up the data into daily 'buckets.'
+
+```{r}
+cleandata <- na.omit(data)
+dailydata <- aggregate( . ~ date, data = cleandata, sum)
+summary(dailydata)
+```
 
 ## What is mean total number of steps taken per day?
 
+The mean total number of steps taken per day is `r mean(dailydata$steps)` and the median is `r mean(dailydata$steps)`.
 
+```{r}
+summary(dailydata$steps)
+hist(dailydata$steps)
+```
 
 ## What is the average daily activity pattern?
 
+It can be observed that the daily activity peaks in the morning.
 
+```{r}
+dailyave <- aggregate( . ~ interval, data = cleandata, mean)
+plot(dailyave$interval, dailyave$steps, type="l")
+```
+
+With the maximum 5 minute average being `r max(dailyave$steps)` steps at `r dailyave$interval[which.max(dailyave$steps)]` interval.
 
 ## Imputing missing values
 
+Utilize a simple replace to fill the mean step value into any NA data entry.
+
+```{r}
+filldata <- data
+filldata[is.na(filldata)] <- 37.38
+dailyfill <- aggregate( . ~ date, data = filldata, sum)
+hist(dailyfill$steps)
+```
+
+Comparing the initial dataset with the imputed value dataset, the medians and quartiles differ, but the mean remains the same. This aligns with the strategy of pushing the mean to unfilled values. This could give the effect of decreasing the variance/standard deviation and perhaps a more detailed strategy should be used.
+
+```{r}
+summary(dailydata$steps)
+summary(dailyfill$steps)
+```
 
 
-## Are there differences in activity patterns between weekdays and weekends?
+
